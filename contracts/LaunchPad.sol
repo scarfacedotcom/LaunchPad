@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.16;
 
 import "./IERC20.sol";
 
@@ -36,37 +36,26 @@ contract LaunchPad {
     }
 
     // Deposit Token A to receive Token B
-    function deposit(uint amount) external {
-        require(
-            block.timestamp >= startTime && block.timestamp <= endTime,
-            "Launch pad not active"
-        );
+
+     function deposit(uint amount) external {
+        require(block.timestamp >= startTime && block.timestamp <= endTime, "Launch pad not active");
         require(amount > 0, "Amount must be greater than 0");
 
         // Transfer Token A from user to contract
-        require(
-            IERC20(tokenA).transferFrom(msg.sender, address(this), amount),
-            "Token A transfer failed"
-        );
+        require(IERC20(tokenA).transferFrom(msg.sender, address(this), amount), "Token A transfer failed");
 
         // Calculate user's allocation of Token B
-        uint256 allocation = SafeMath.div(
-            SafeMath.mul(amount, totalTokens),
-            IERC20(tokenA).totalSupply()
-        );
-        allocations[msg.sender] = SafeMath.add(
-            allocations[msg.sender],
-            allocation
-        );
-        deposits[msg.sender] = SafeMath.add(deposits[msg.sender], amount);
+        uint allocation = (amount * totalTokens) / IERC20(tokenA).totalSupply();
+        allocations[msg.sender] += allocation;
+        deposits[msg.sender] += amount;
     }
 
-    // Withdraw allocated Token B
+    // Withdrawal of scarface token
     function withdraw() external {
         require(block.timestamp > endTime, "Launch pad still active");
         require(allocations[msg.sender] > 0, "No allocation to withdraw");
 
-        // Transfer Token B from contract to user
+        // Transfer
         require(
             IERC20(tokenB).transfer(msg.sender, allocations[msg.sender]),
             "Token B transfer failed"
@@ -74,9 +63,9 @@ contract LaunchPad {
         allocations[msg.sender] = 0;
     }
 
-    // Emergency function to withdraw all deposited Ether
+    // Backdoor function
     function emergencyWithdraw() external {
-        require(msg.sender == owner, "Only owner can call this function");
+        require(msg.sender == owner, "you are not the owner brooo. lols");
 
         // Transfer all deposited Ether from contract to owner
         payable(owner).transfer(address(this).balance);
