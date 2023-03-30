@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import "./IERC20.sol";
 
 contract LaunchPad {
-    // Token A and Token B
+    
     address public tokenA;
     address public tokenB;
 
     // Total number of Scar Face Tokens to be distributed
-    uint public constant totalTokens = 2_000_000 * 10 ** 18; // 2 million tokens
+    uint public constant totalTokens = 2_000_000 * 10 ** 18; 
 
     // Launch pad start and end time
     uint public startTime;
@@ -22,7 +22,12 @@ contract LaunchPad {
     // Contract owner
     address public owner;
 
-    constructor(address _tokenA, address _tokenB, uint _startTime, uint _endTime) {
+    constructor(
+        address _tokenA,
+        address _tokenB,
+        uint _startTime,
+        uint _endTime
+    ) {
         tokenA = _tokenA;
         tokenB = _tokenB;
         startTime = _startTime;
@@ -32,16 +37,28 @@ contract LaunchPad {
 
     // Deposit Token A to receive Token B
     function deposit(uint amount) external {
-        require(block.timestamp >= startTime && block.timestamp <= endTime, "Launch pad not active");
+        require(
+            block.timestamp >= startTime && block.timestamp <= endTime,
+            "Launch pad not active"
+        );
         require(amount > 0, "Amount must be greater than 0");
 
         // Transfer Token A from user to contract
-        require(IERC20(tokenA).transferFrom(msg.sender, address(this), amount), "Token A transfer failed");
+        require(
+            IERC20(tokenA).transferFrom(msg.sender, address(this), amount),
+            "Token A transfer failed"
+        );
 
         // Calculate user's allocation of Token B
-        uint allocation = (amount * totalTokens) / IERC20(tokenA).totalSupply();
-        allocations[msg.sender] += allocation;
-        deposits[msg.sender] += amount;
+        uint256 allocation = SafeMath.div(
+            SafeMath.mul(amount, totalTokens),
+            IERC20(tokenA).totalSupply()
+        );
+        allocations[msg.sender] = SafeMath.add(
+            allocations[msg.sender],
+            allocation
+        );
+        deposits[msg.sender] = SafeMath.add(deposits[msg.sender], amount);
     }
 
     // Withdraw allocated Token B
@@ -50,7 +67,10 @@ contract LaunchPad {
         require(allocations[msg.sender] > 0, "No allocation to withdraw");
 
         // Transfer Token B from contract to user
-        require(IERC20(tokenB).transfer(msg.sender, allocations[msg.sender]), "Token B transfer failed");
+        require(
+            IERC20(tokenB).transfer(msg.sender, allocations[msg.sender]),
+            "Token B transfer failed"
+        );
         allocations[msg.sender] = 0;
     }
 
@@ -62,5 +82,3 @@ contract LaunchPad {
         payable(owner).transfer(address(this).balance);
     }
 }
-
-

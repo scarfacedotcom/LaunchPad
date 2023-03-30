@@ -1,18 +1,20 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  const startTime = Math.round(Date.now() / 1000);
+  const endTime = startTime + 600;
 
-  const lockedAmount = ethers.utils.parseEther("0.001");
+  const tokenA = 0xFfb99f4A02712C909d8F7cC44e67C87Ea1E71E83
+  const tokenB = 0x5886F287C4473Ce13c58474a261b31c881f8635d
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
 
-  await lock.deployed();
+  const LaunchPad = await ethers.getContractFactory("LaunchPad");
+  const launchPad = await LaunchPad.deploy(tokenA,tokenB,startTime,endTime);
+
+  await launchPad.deployed();
 
   console.log(
-    `Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
+    `The LaunchPad Contract has been deployed to ${launchPad.address}`
   );
 }
 
